@@ -2,15 +2,29 @@ import { ContactForm } from './ContactForm/ContactForm';
 import { GlobalStyle } from './GlobalStyle';
 import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
-import { getContacts, addContact, deleteContact } from 'redux/contactSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
-import { getFilter, setFilter } from 'redux/filterSlice';
+import { setFilter } from 'redux/filterSlice';
+import { Loader } from './Loader/Loader';
+import { fetchContacts, addContact, deleteContact } from 'redux/operations';
+import { useEffect } from 'react';
+import {
+  selectContacts,
+  selectIsLoading,
+  selectError,
+  selectStatusFilter,
+} from 'redux/selectors';
 
 export const App = () => {
-  const contacts = useSelector(getContacts);
-  const filter = useSelector(getFilter);
+  const contacts = useSelector(selectContacts);
+  const isLoading = useSelector(selectIsLoading);
+  const filter = useSelector(selectStatusFilter);
+  const error = useSelector(selectError);
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   const doAddContact = newContact => {
     if (
@@ -26,6 +40,7 @@ export const App = () => {
   const doDeleteContact = id => {
     dispatch(deleteContact(id));
   };
+
   const onChangeInput = e => {
     dispatch(setFilter(e.currentTarget.value));
   };
@@ -43,6 +58,8 @@ export const App = () => {
       <ContactForm onAdd={doAddContact} />
       <h2>Contacts</h2>
       <Filter filter={filter} onChangeInput={onChangeInput} />
+      {isLoading && <Loader />}
+      {error && <p>Oops, something wrong is going on...</p>}
       <ContactList contacts={filterNew()} onDelete={doDeleteContact} />
     </div>
   );
